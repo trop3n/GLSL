@@ -67,6 +67,7 @@ def convert_shader(shader_source: str) -> str:
     lines = shader_source.split('\n')
     output_lines = []
 
+    in_gl_es_block = False
     for line in lines:
         stripped = line.strip()
 
@@ -74,9 +75,16 @@ def convert_shader(shader_source: str) -> str:
         if stripped.startswith('#version'):
             continue
 
-        # Skip GL_ES precision and ifdef blocks
-        if stripped.startswith('#ifdef GL_ES') or stripped.startswith('#endif'):
+        # Track and skip GL_ES ifdef blocks
+        if stripped.startswith('#ifdef GL_ES'):
+            in_gl_es_block = True
             continue
+        if in_gl_es_block and stripped.startswith('#endif'):
+            in_gl_es_block = False
+            continue
+        if in_gl_es_block:
+            continue
+
         if stripped.startswith('precision '):
             continue
 
